@@ -1,45 +1,69 @@
 const fs = require('fs');
 const path = require('path');
 
-// Patch 1: Fix ajv-keywords _formatLimit.js
-const problematicFile = path.join(__dirname, '..', 'node_modules', 'fork-ts-checker-webpack-plugin', 'node_modules', 'ajv-keywords', 'keywords', '_formatLimit.js');
-
-if (fs.existsSync(problematicFile)) {
+// Patch: Fix ajv-keywords _formatLimit.js in multiple packages
+// This fixes the issue where ajv._formats is undefined with ajv 8
+function patchFormatLimit(filePath) {
+  if (!fs.existsSync(filePath)) return false;
+  
   try {
-    let content = fs.readFileSync(problematicFile, 'utf8');
-    // Patch: Fix the extendFormats function to handle undefined formats
-    const oldFunction = `function extendFormats(ajv) {
-  var formats = ajv._formats;
-  for (var name in COMPARE_FORMATS) {
-        var format = formats && formats[name];
-    // the last condition is needed if it's RegExp from another window
-    if (typeof format != 'object' || format instanceof RegExp || !format.validate)
-      format = formats[name] = { validate: format };
-    if (!format.compare)
-      format.compare = COMPARE_FORMATS[name];
-  }
-}`;
+    let content = fs.readFileSync(filePath, 'utf8');
     
-    const newFunction = `function extendFormats(ajv) {
-  var formats = ajv._formats;
-  if (!formats) return;
-  for (var name in COMPARE_FORMATS) {
-    var format = formats[name];
-    // the last condition is needed if it's RegExp from another window
-    if (typeof format != 'object' || format instanceof RegExp || !format.validate)
-      format = formats[name] = { validate: format };
-    if (!format.compare)
-      format.compare = COMPARE_FORMATS[name];
-  }
-}`;
-    
-    if (content.includes('function extendFormats(ajv)')) {
-      content = content.replace(oldFunction, newFunction);
-      fs.writeFileSync(problematicFile, content, 'utf8');
-      console.log('✓ Patched ajv-keywords _formatLimit.js');
+    // Simple and safe patch: Add early return if formats is undefined
+    if (content.includes('function extendFormats(ajv)') && !content.includes('if (!formats) return;')) {
+      // Replace the exact pattern: var formats = ajv._formats; followed by for loop
+      content = content.replace(
+        /(function extendFormats\(ajv\) \{\s*var formats = ajv\._formats;)/,
+        `$1
+  if (!formats) return;`
+      );
+      
+      fs.writeFileSync(filePath, content, 'utf8');
+      return true;
     }
   } catch (err) {
     // Silently fail
   }
+  return false;
+}
+
+// Find and patch all instances of _formatLimit.js
+function findAndPatchAll(nodeModulesDir) {
+  let patchedCount = 0;
+  
+  function walkDir(dir) {
+    if (!fs.existsSync(dir)) return;
+    
+    try {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        const filePath = path.join(dir, file);
+        try {
+          const stat = fs.statSync(filePath);
+          if (stat.isDirectory()) {
+            walkDir(filePath);
+          } else if (file === '_formatLimit.js' && filePath.includes('ajv-keywords')) {
+            if (patchFormatLimit(filePath)) {
+              patchedCount++;
+            }
+          }
+        } catch (err) {
+          // Skip files we can't access
+        }
+      }
+    } catch (err) {
+      // Skip directories we can't access
+    }
+  }
+  
+  walkDir(nodeModulesDir);
+  return patchedCount;
+}
+
+const nodeModules = path.join(__dirname, '..', 'node_modules');
+const patchedCount = findAndPatchAll(nodeModules);
+
+if (patchedCount > 0) {
+  console.log(`✓ Patched ${patchedCount} ajv-keywords _formatLimit.js file(s)`);
 }
 
