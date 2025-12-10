@@ -37,7 +37,7 @@ const Login = () => {
   const [isRecovering, setIsRecovering] = useState(false);
   const recoveryRef = useRef(null);
   const registerRef = useRef(null);
-
+ const REGISTERED_USERS_KEY = 'sss-registered-users';
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -80,21 +80,20 @@ const handleRecoverySubmit = async (e) => {
     return;
   }
 
+  // --- CHECK IF USER EXISTS IN LOCAL STORAGE --- //
+  const users = JSON.parse(localStorage.getItem(REGISTERED_USERS_KEY)) || [];
+  const foundUser = users.find(user => user.email === recoveryEmail);
+
+  if (!foundUser) {
+    setRecoveryError(t('register.errors.emailNotRegistered')); 
+    return;
+  }
+
   try {
     setIsRecovering(true);
-
-    // Optional: here you can verify that the email exists in your system
-    // const userExists = await checkUserEmail(recoveryEmail);
-    // if (!userExists) throw new Error('USER_NOT_FOUND');
-
     await sendRecoveryEmail(recoveryEmail);
-
   } catch (err) {
-    if (err.message === 'USER_NOT_FOUND') {
-      setRecoveryError(t('register.errors.emailNotRegistered'));
-    } else {
-      setRecoveryError(t('register.errors.failedSend'));
-    }
+    setRecoveryError(t('register.errors.failedSend'));
   } finally {
     setIsRecovering(false);
   }
@@ -184,16 +183,16 @@ const handleRecoverySubmit = async (e) => {
     setError('');
   };
 const sendRecoveryEmail = async (userEmail) => {
-
+const code = Math.floor(1000 + Math.random() * 9000);
   try {
     await emailjs.send(
-      'service_bzm077b',      // EmailJS service ID
-      'template_d7gwo5i',     // EmailJS template ID (իմ HTML-ը)
+      'service_bzm077b',      
+      'template_d7gwo5i',     
       {
-        link: `http://localhost:3000/login`,       // correspond to {link} in template
-        email: userEmail       // correspond to {{email}} in template
+        message: `Your password code is: ${code}`,      
+        email: userEmail       
       },
-      'cdiLKm1nFLt0BfCH5'       // EmailJS public key
+      'cdiLKm1nFLt0BfCH5'      
     );
 
     setRecoveryMessage(t('register.errors.send') + `${userEmail}!`);

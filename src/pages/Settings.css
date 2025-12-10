@@ -536,3 +536,102 @@ margin-top: 20px;
     margin-right: 8px;
   }
 }
+
+/* Invite Friends Section */
+.invite-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.qr-code-container h3 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.qr-code-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.qr-code-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.qr-code-description {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 350px;
+  transition: color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .qr-code-container {
+    max-width: 100%;
+  }
+  
+  .qr-code-container h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  
+  .qr-code-wrapper {
+    padding: 16px;
+  }
+  
+  .qr-code-image {
+    max-width: 250px;
+  }
+  
+  .qr-code-description {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .qr-code-container h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+  
+  .qr-code-wrapper {
+    padding: 12px;
+  }
+  
+  .qr-code-image {
+    max-width: 200px;
+  }
+  
+  .qr-code-description {
+    font-size: 0.85rem;
+  }
+}

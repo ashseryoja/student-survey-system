@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Bell, Shield, Palette, Moon, Sun, Save, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Shield, Palette, Moon, Sun, Save, RotateCcw, ArrowLeft, UserPlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -128,7 +128,8 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
     { id: 'notifications', label: t('tabs.notifications'), icon: Bell },
     { id: 'privacy', label: t('tabs.privacy'), icon: Shield },
     { id: 'appearance', label: t('tabs.appearance'), icon: Palette },
-    { id: 'account', label: t('tabs.account'), icon: SettingsIcon }
+    { id: 'account', label: t('tabs.account'), icon: SettingsIcon },
+    { id: 'invite', label: 'Invite Friends', icon: UserPlus }
   ];
   const renderSettingsContent = () => (
     <div className="settings-panel">
@@ -389,16 +390,15 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
               <button
                 className='send-button'
                 onClick={() => {
-                  // 1) Verify Email
                   if (twoFactorEmail.trim() !== user.email.trim()) {
                     setEmailError(t('settings.notMatch'));
                     return;
                   }
-
-                  // 2) Send EmailJS message
+                 const code = Math.floor(1000 + Math.random() * 9000);
+    
                   const templateParams = {
                     to_email: twoFactorEmail,
-                    message: "Your 2FA code is: 123456",
+                    message: `Your 2FA code is: ${code}`,
                   };
 
                   emailjs
@@ -468,17 +468,44 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
   </div>
 )}
 
+              {activeTab === 'invite' && (
+                <div className="settings-section">
+                  <h2>Invite Friends</h2>
+                  <p className="section-description">Share your referral code or QR code with friends to invite them to join.</p>
 
-              <div className="settings-actions">
-                <button onClick={handleReset} className="btn btn-secondary">
-                  <RotateCcw size={16} />
-                  {t('settings.reset')}
-                </button>
-                <button onClick={handleSave} className="btn btn-primary">
-                  <Save size={16} />
-                  {t('settings.save')}
-                </button>
-              </div>
+                  <div className="settings-group">
+                    <div className="invite-section">
+                      <div className="qr-code-container">
+                        <h3>Scan to Join</h3>
+                        <div className="qr-code-wrapper">
+                          <img 
+                            src="/logo/qr-code.png" 
+                            alt="QR Code" 
+                            className="qr-code-image"
+                          />
+                        </div>
+                        <p className="qr-code-description">
+                          Ask your friends to scan this QR code to join the platform
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {activeTab !== 'invite' && (
+                <div className="settings-actions">
+                  <button onClick={handleReset} className="btn btn-secondary">
+                    <RotateCcw size={16} />
+                    {t('settings.reset')}
+                  </button>
+                  <button onClick={handleSave} className="btn btn-primary">
+                    <Save size={16} />
+                    {t('settings.save')}
+                  </button>
+                </div>
+              )}
     </div>
   );
 

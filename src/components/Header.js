@@ -57,6 +57,31 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Auto-scroll mobile menu when dropdown opens/closes
+  useEffect(() => {
+    if (!mobileMenuRef.current || !isMobileMenuOpen) return;
+
+    const mobileMenuElement = mobileMenuRef.current;
+    
+    if (isDropdownOpen) {
+      // Scroll to bottom when dropdown opens
+      setTimeout(() => {
+        mobileMenuElement.scrollTo({
+          top: mobileMenuElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100); // Small delay to ensure dropdown is rendered
+    } else {
+      // Scroll to top when dropdown closes
+      setTimeout(() => {
+        mobileMenuElement.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [isDropdownOpen, isMobileMenuOpen]);
+
   return (
     <>
       {isMobileMenuOpen && (
@@ -87,7 +112,7 @@ const Header = () => {
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             
-            <div className={`header-right ${isMobileMenuOpen ? 'mobile-open' : ''}`} ref={mobileMenuRef}>
+            <div className={`header-right ${isMobileMenuOpen ? 'mobile-open' : ''} ${isMobileMenuOpen && isDropdownOpen ? 'has-dropdown-open' : ''}`} ref={mobileMenuRef}>
             <nav className="nav">
               <Link
                 to="/" 
